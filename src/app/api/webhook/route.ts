@@ -1,7 +1,10 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, after } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { generateAIResponse } from "@/lib/ai";
+
+// Allow up to 60s for AI processing on Vercel (Hobby = 60s max, Pro = 300s)
+export const maxDuration = 60;
 
 // Webhook verification (Meta sends GET to verify)
 export async function GET(request: NextRequest) {
@@ -23,6 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log("📨 Webhook received:", JSON.stringify(body).substring(0, 500));
 
     // Validate it's a WhatsApp Business Account event
     if (body.object !== "whatsapp_business_account") {
@@ -49,18 +53,31 @@ export async function POST(request: NextRequest) {
           const contactName =
             value.contacts?.[0]?.profile?.name || "Unknown";
 
+          // Extract CTWA referral data from Meta Ads
+          const referral = message.referral || null;
+
           if (!phone || !text) continue;
 
-          // Process message in background (don't block webhook response)
-          processIncomingMessage(phone, contactName, text, whatsappMsgId).catch(
-            (err) =>
-              console.error("Error processing message:", err)
-          );
+          // Use after() to process message AFTER response is sent
+          // This keeps the serverless function alive on Vercel
+          after(async () => {
+            try {
+              await processIncomingMessage(
+                phone,
+                contactName,
+                text,
+                whatsappMsgId,
+                referral
+              );
+            } catch (err) {
+              console.error("❌ Error processing message:", err);
+            }
+          });
         }
       }
     }
 
-    // Always return 200 quickly to Meta
+    // Return 200 immediately to Meta (after() keeps function alive)
     return new Response("OK", { status: 200 });
   } catch (error) {
     console.error("Webhook POST error:", error);
@@ -68,12 +85,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
+interface Referral {
+  source_url?: string;
+  source_id?: string;
+  source_type?: string;
+  headline?: string;
+  body?: string;
+}
+
 async function processIncomingMessage(
   phone: string,
   name: string,
   text: string,
-  whatsappMsgId: string
+  whatsappMsgId: string,
+  referral: Referral | null
 ) {
+  console.log(`📩 Processing message from ${phone}: "${text.substring(0, 50)}"`);
+
   const supabase = createServerSupabaseClient();
 
   // 1. Deduplicate — check if we already processed this message
@@ -96,9 +124,18 @@ async function processIncomingMessage(
     .maybeSingle();
 
   if (!conversation) {
+    // Build insert data — include CTWA referral if present
+    const insertData: Record<string, string> = { phone, name };
+
+    if (referral) {
+      console.log("🎯 CTWA Referral detected:", JSON.stringify(referral));
+      if (referral.source_id) insertData.meta_ad_id = referral.source_id;
+      insertData.source = "ctwa";
+    }
+
     const { data: newConv, error } = await supabase
       .from("conversations")
-      .insert({ phone, name })
+      .insert(insertData)
       .select()
       .single();
 
@@ -107,6 +144,7 @@ async function processIncomingMessage(
       throw error;
     }
     conversation = newConv;
+    console.log("🆕 New conversation created:", conversation.id);
   } else if (name && name !== "Unknown" && conversation.name !== name) {
     // Update name if we got a better one
     await supabase
@@ -127,6 +165,8 @@ async function processIncomingMessage(
     console.error("Error storing message:", msgError);
     throw msgError;
   }
+
+  console.log("💾 Message stored for conversation:", conversation.id);
 
   // 4. Check mode — only auto-reply in agent mode
   if (conversation.mode !== "agent") {
@@ -150,6 +190,7 @@ async function processIncomingMessage(
   }
 
   // 6. Generate AI response
+  console.log("🤖 Generating AI response...");
   const aiResponse = await generateAIResponse(
     messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))
   );
