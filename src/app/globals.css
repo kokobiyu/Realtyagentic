@@ -745,13 +745,25 @@ html, body {
 
 /* Kanban Board */
 .kanban-board {
-  flex: 1; display: flex; gap: 12px; padding: 16px; overflow-x: auto;
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  overflow-x: auto;
+  min-height: 0;
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* smooth touch scrolling on mobile */
 }
 
 .kanban-column {
-  min-width: 220px; flex: 1; display: flex; flex-direction: column;
-  background: var(--bg-secondary); border-radius: 14px;
-  border: 1px solid var(--border-subtle); overflow: hidden;
+  min-width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
 }
 
 .kanban-column-header {

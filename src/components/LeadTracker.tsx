@@ -12,7 +12,6 @@ interface LeadTrackerProps {
 
 const STATUSES = [
   { key: "new", emoji: "🆕", label: "Baru", color: "var(--accent-blue)" },
-  { key: "contacted", emoji: "📞", label: "Dihubungi", color: "#8b5cf6" },
   { key: "warm", emoji: "🔥", label: "Warm", color: "#f59e0b" },
   { key: "survey", emoji: "🏠", label: "Survey", color: "#10b981" },
   { key: "booking", emoji: "📝", label: "Booking", color: "#06b6d4" },

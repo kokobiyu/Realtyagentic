@@ -12,7 +12,7 @@ export async function PATCH(
     const body = await request.json();
     const { status, notes } = body;
 
-    const validStatuses = ["new", "contacted", "warm", "survey", "booking", "closed", "lost"];
+    const validStatuses = ["new", "warm", "survey", "booking", "closed", "lost"];
     if (status && !validStatuses.includes(status)) {
       return Response.json(
         { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
