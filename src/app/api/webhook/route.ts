@@ -1,6 +1,6 @@
 import { type NextRequest, after } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendWhatsAppMessage, markMessageAsRead } from "@/lib/whatsapp";
 import { generateAIResponse } from "@/lib/ai";
 
 // Allow up to 60s for AI processing on Vercel (Hobby = 60s max, Pro = 300s)
@@ -209,7 +209,15 @@ async function processIncomingMessage(
     messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))
   );
 
-  // 7. Send AI response via WhatsApp
+  // 7. Send AI response via WhatsApp with human-like delays
+  // Mark incoming message as read (triggers blue checkmarks on customer's phone)
+  await markMessageAsRead(whatsappMsgId);
+
+  // Simulate typing delay: 35ms per character (min 1.5s, max 6s)
+  const typingDelay = Math.min(6000, Math.max(1500, aiResponse.length * 35));
+  console.log(`⏳ Simulating human typing for ${typingDelay}ms...`);
+  await new Promise((resolve) => setTimeout(resolve, typingDelay));
+
   await sendWhatsAppMessage(phone, aiResponse);
 
   // 8. Store AI response in DB
