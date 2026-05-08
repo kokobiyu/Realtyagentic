@@ -41,7 +41,9 @@ export async function sendMetaCapiEvent({
   const hashedPhone = sha256(cleanPhone);
   const hashedName = name ? sha256(name) : undefined;
 
-  const eventData = {
+  const testEventCode = process.env.META_CAPI_TEST_CODE;
+
+  const eventData: Record<string, any> = {
     data: [
       {
         event_name: eventName,
@@ -60,6 +62,10 @@ export async function sendMetaCapiEvent({
       },
     ],
   };
+
+  if (testEventCode) {
+    eventData.test_event_code = testEventCode;
+  }
 
   try {
     const url = `https://graph.facebook.com/v19.0/${pixelId}/events`;
