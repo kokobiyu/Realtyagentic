@@ -1,4 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { after } from "next/server";
+import { sendMetaCapiEvent } from "@/lib/meta-capi";
 
 // PATCH /api/leads/[id] — Update lead status
 export async function PATCH(
@@ -45,6 +47,28 @@ export async function PATCH(
     }
 
     console.log(`📊 Lead ${id} updated to status: ${status}`);
+
+    // Track Meta Ads Conversions (CAPI) on high-value status updates
+    if (status) {
+      const highValueEvents: Record<string, string> = {
+        survey: "Schedule",          // Customer scheduled property survey
+        booking: "SubmitApplication", // Customer booked/made reservation deposit
+        closed: "Purchase",          // Deal closed successfully
+      };
+
+      const metaEventName = highValueEvents[status];
+      if (metaEventName) {
+        after(async () => {
+          console.log(`📡 Triggering Meta CAPI Background Work for event: ${metaEventName}`);
+          await sendMetaCapiEvent({
+            eventName: metaEventName,
+            phone: data.phone,
+            name: data.name,
+            adId: data.meta_ad_id,
+          });
+        });
+      }
+    }
 
     return Response.json(data);
   } catch (error) {
