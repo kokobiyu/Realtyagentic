@@ -55,6 +55,7 @@ html, body {
 /* ======================== */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 8px; /* Enable and style horizontal scrollbars */
 }
 
 ::-webkit-scrollbar-track {
@@ -753,6 +754,27 @@ html, body {
   min-height: 0;
   width: 100%;
   -webkit-overflow-scrolling: touch; /* smooth touch scrolling on mobile */
+}
+
+/* Ensure horizontal scrollbar is highly visible and scrollable */
+.kanban-board::-webkit-scrollbar {
+  height: 10px;
+  display: block !important;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  border: 2px solid var(--bg-primary);
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .kanban-column {
