@@ -108,3 +108,30 @@ export async function sendWhatsAppContact(to: string, contactName: string, conta
   }
   return data;
 }
+
+// 4. Mark Message as Read (triggers blue checkmarks on customer's phone)
+export async function markMessageAsRead(messageId: string) {
+  try {
+    const { phoneNumberId, accessToken } = getCredentials();
+    const url = `${GRAPH_API_URL}/${phoneNumberId}/messages`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        status: "read",
+        message_id: messageId,
+      }),
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to mark message as read:", error);
+  }
+}
+

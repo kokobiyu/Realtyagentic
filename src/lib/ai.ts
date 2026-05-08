@@ -69,6 +69,8 @@ Tanyakan data berikut satu per satu, jangan sekaligus:
 4. Total penghasilan suami istri?
    - Untuk PNS maksimal 8 juta
 5. Apakah ada kredit macet atau cicilan berjalan?
+    - kalau ada kredit macet bisa dilunaskan dulu tim kami akan bantu
+    - kalau ada cicilan berjalan bisa, brp jumlahnya?
 
 Jika data tidak memenuhi:
 “Mohon maaf kak, untuk data saat ini belum bisa masuk rumah subsidi 🙏
