@@ -286,6 +286,8 @@ html, body {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
+  min-width: 0; /* Force flex child to respect parent width constraints */
+  overflow: hidden;
 }
 
 .chat-header {

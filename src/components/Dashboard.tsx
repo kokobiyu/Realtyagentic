@@ -372,7 +372,6 @@ function LeadsSummary({ leads }: { leads: Lead[] }) {
 
   const statusLabels: Record<string, { emoji: string; label: string }> = {
     new: { emoji: "🆕", label: "Baru" },
-    contacted: { emoji: "📞", label: "Dihubungi" },
     warm: { emoji: "🔥", label: "Warm" },
     survey: { emoji: "🏠", label: "Survey" },
     booking: { emoji: "📝", label: "Booking" },
