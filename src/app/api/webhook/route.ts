@@ -145,6 +145,20 @@ async function processIncomingMessage(
     }
     conversation = newConv;
     console.log("🆕 New conversation created:", conversation.id);
+
+    // Auto-create lead entry for tracking
+    const leadData: Record<string, string> = {
+      conversation_id: conversation.id,
+      phone,
+      name,
+      source: referral ? "ctwa" : "organic",
+    };
+    if (referral?.source_id) leadData.meta_ad_id = referral.source_id;
+    if (referral?.headline) leadData.referral_headline = referral.headline;
+    if (referral?.body) leadData.referral_body = referral.body;
+
+    await supabase.from("leads").insert(leadData).select().single();
+    console.log("📊 Lead auto-created for:", phone);
   } else if (name && name !== "Unknown" && conversation.name !== name) {
     // Update name if we got a better one
     await supabase
