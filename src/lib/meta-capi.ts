@@ -48,7 +48,7 @@ export async function sendMetaCapiEvent({
       {
         event_name: eventName,
         event_time: Math.floor(Date.now() / 1000),
-        action_source: "physical_store", // For offline conversions from WhatsApp/CRM
+        action_source: "website", // Use 'website' so it matches the Web filter in Events Manager
         event_source_url: eventSourceUrl,
         user_data: {
           ph: [hashedPhone],
